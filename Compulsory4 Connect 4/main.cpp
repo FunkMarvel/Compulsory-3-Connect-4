@@ -62,4 +62,14 @@ int main() {
 }
 
 void start_task(int position) {
+	switch (position) {
+	case 0:
+		break;
+	case 1:
+		break;
+	case 2:
+		exit(0);
+	default:
+		break;
+	}
 }
