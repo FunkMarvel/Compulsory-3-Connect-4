@@ -17,7 +17,7 @@ void start_task(int);
 void menu() {
 	int position{};
 	char input{};
-	vector<string> menu_options = { "Play against player.", "Play against AI." };
+	vector<string> menu_options = { "Play against player.", "Play against AI.", "Quit to desktop."};
 
 	while (true) {
 		system("cls");
@@ -39,7 +39,7 @@ void menu() {
 		case 's':
 			position++;
 			break;
-		case '\cr':  // selects current menu item on press of enter key.
+		case '\r':  // selects current menu item on press of enter key.
 			system("cls");
 			start_task(position);
 			system("pause");
