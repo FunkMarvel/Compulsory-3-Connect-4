@@ -15,6 +15,7 @@ void menu(vector<vector<char>>&);
 void startTask(int, vector<vector<char>>&);
 void createBoard(vector<vector<char>>&, int, int);
 void drawBoard(vector<vector<char>>&);
+void drawBar(vector<char>&, int, char);
 void display(vector<vector<char>>&, char);
 
 int main() {
@@ -73,33 +74,36 @@ void drawBoard(vector<vector<char>>& board) {
 	}
 }
 
+void drawBar(vector<char>& selection_bar, int position, char player) {
+	for (int i = 0; i < selection_bar.size(); i++) {
+		if (i == position) { cout << termcolor::bright_green << "   v"; }
+		else { cout << "   " << selection_bar[i]; }
+	}
+	cout << termcolor::reset << endl;
+
+	for (int i = 0; i < selection_bar.size(); i++) {
+		if (i == position && player == 'o') cout << termcolor::bright_yellow;
+		if (i == position && player == 'x') cout << termcolor::bright_red;
+		cout << "   " << selection_bar[i];
+	}
+	cout << termcolor::reset << endl;
+}
+
 void display(vector<vector<char>>& board, char player) {
 	char input{};
 	int position{(int) board[0].size()/2};
+	bool selection{ false };
 	vector<char> selection_bar(board[0].size(), ' ');
 	
 	while (true) {
-
+		system("cls");
 		selection_bar[position] = player;
-
-
-		for (int i = 0; i < selection_bar.size(); i++) {
-			if (i == position) { cout << termcolor::bright_green << "   v"; }
-			else { cout << "   " << selection_bar[i]; }
-		}
-		cout << termcolor::reset << endl;
-
-		for (int i = 0; i < selection_bar.size(); i++) {
-			if (i == position && player == 'o') cout << termcolor::bright_yellow;
-			if (i == position && player == 'x') cout << termcolor::bright_red;
-			cout << "   " << selection_bar[i];
-		}
-		cout << termcolor::reset << endl;
+		
+		drawBar(selection_bar, position, player);
 		
 		drawBoard(board);
 		
 		input = _getch();
-		system("cls");
 
 		switch (input) {
 		case 'a':
@@ -108,12 +112,30 @@ void display(vector<vector<char>>& board, char player) {
 		case 'd':
 			selection_bar[position++] = ' ';
 			break;
+		case '\r':
+			selection = true;
+			selection_bar[position] = ' ';
+			break;
 		default:
 			break;
 		}
 
 		if (position < 0) { position = selection_bar.size() - 1; }
 		else if (position >= selection_bar.size()) { position = 0; }
+
+		if (selection) {
+			for (int i = 0; i < board.size(); i++) {
+				if (board[i][position] == ' ') {
+					board[i][position] = player;
+					if (i != 0) board[i - 1][position] = ' ';
+					system("cls");
+					drawBar(selection_bar, position, player);
+					drawBoard(board);
+					Sleep(100);
+				}
+			}
+			return;
+		}
 	}
 }
 
