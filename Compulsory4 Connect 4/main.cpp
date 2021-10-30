@@ -11,12 +11,13 @@
 using std::cout; using std::cin; using std::string;
 using std::endl; using std::vector;
 
-void menu(vector<vector<char>>&);
-void startTask(int, vector<vector<char>>&);
-void createBoard(vector<vector<char>>&, int, int);
-void drawBoard(vector<vector<char>>&);
-void drawBar(vector<char>&, int, char);
-void display(vector<vector<char>>&, char);
+void menu(vector<vector<char>>& board);
+void gamePlayLoop(vector<vector<char>>& board);
+void startTask(int, vector<vector<char>>& board);
+void createBoard(vector<vector<char>>& board, int num_rows, int num_cols);
+void drawBoard(vector<vector<char>>& board);
+void drawBar(vector<char>& selection_bar, int position, char player, bool prompt=true);
+void selectCol(vector<vector<char>>&, char player);
 
 int main() {
 	vector<vector<char>> board{};
@@ -30,7 +31,7 @@ int main() {
 void startTask(int position, vector<vector<char>>& board) {
 	switch (position) {
 	case 0:
-		display(board, 'x');
+		gamePlayLoop(board);
 		break;
 	case 1:
 		break;
@@ -74,7 +75,8 @@ void drawBoard(vector<vector<char>>& board) {
 	}
 }
 
-void drawBar(vector<char>& selection_bar, int position, char player) {
+void drawBar(vector<char>& selection_bar, int position, char player, bool prompt) {
+	if (prompt) cout << termcolor::reset << " Navigate with 'a' and 'd', select column with 'enter':" << endl;
 	for (int i = 0; i < selection_bar.size(); i++) {
 		if (i == position) { cout << termcolor::bright_green << "   v"; }
 		else { cout << "   " << selection_bar[i]; }
@@ -89,7 +91,7 @@ void drawBar(vector<char>& selection_bar, int position, char player) {
 	cout << termcolor::reset << endl;
 }
 
-void display(vector<vector<char>>& board, char player) {
+void selectCol(vector<vector<char>>& board, char player) {
 	char input{};
 	int position{(int) board[0].size()/2};
 	bool selection{ false };
@@ -179,4 +181,8 @@ void menu(vector<vector<char>>& board) {
 
 	}
 
+}
+
+void gamePlayLoop(vector<vector<char>>& board) {
+	selectCol(board, 'o');
 }
