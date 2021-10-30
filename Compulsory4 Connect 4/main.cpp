@@ -107,7 +107,7 @@ void selectCol(vector<vector<char>>& board, char player) {
 		
 		input = _getch();
 
-		switch (input) {
+		switch (tolower(input)) {
 		case 'a':
 			selection_bar[position--] = ' ';
 			break;
