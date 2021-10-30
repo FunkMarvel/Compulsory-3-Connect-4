@@ -184,5 +184,16 @@ void menu(vector<vector<char>>& board) {
 }
 
 void gamePlayLoop(vector<vector<char>>& board) {
-	selectCol(board, 'o');
+	char player{ 'o' };
+	bool ai_on{ false };
+	int turn{};
+
+	while (true) {
+		if (turn % 2 == 0) { player = 'x'; }
+		else { player = 'o'; }
+
+		selectCol(board, player);
+
+		turn++;
+	}
 }
