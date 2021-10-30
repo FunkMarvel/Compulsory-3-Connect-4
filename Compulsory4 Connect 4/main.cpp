@@ -15,7 +15,7 @@ void menu(vector<vector<char>>&);
 void startTask(int, vector<vector<char>>&);
 void createBoard(vector<vector<char>>&, int, int);
 void drawBoard(vector<vector<char>>&);
-void display(vector<vector<char>>&);
+void display(vector<vector<char>>&, char);
 
 int main() {
 	vector<vector<char>> board{};
@@ -29,7 +29,7 @@ int main() {
 void startTask(int position, vector<vector<char>>& board) {
 	switch (position) {
 	case 0:
-		display(board);
+		display(board, 'x');
 		break;
 	case 1:
 		break;
@@ -73,27 +73,29 @@ void drawBoard(vector<vector<char>>& board) {
 	}
 }
 
-void display(vector<vector<char>>& board) {
+void display(vector<vector<char>>& board, char player) {
 	char input{};
 	int position{(int) board[0].size()/2};
 	vector<char> selection_bar(board[0].size(), ' ');
 	
 	while (true) {
 
-		selection_bar[position] = 'v';
+		selection_bar[position] = player;
+
 
 		for (int i = 0; i < selection_bar.size(); i++) {
-			if (i == position) cout << termcolor::bright_green;
-			cout << "   " << selection_bar[i];
-		}
-		cout << termcolor::reset << endl;
-
-		for (int i = 0; i < selection_bar.size(); i++) {
-			if (i == position) { cout << termcolor::bright_yellow << "   o"; }
+			if (i == position) { cout << termcolor::bright_green << "   v"; }
 			else { cout << "   " << selection_bar[i]; }
 		}
 		cout << termcolor::reset << endl;
 
+		for (int i = 0; i < selection_bar.size(); i++) {
+			if (i == position && player == 'o') cout << termcolor::bright_yellow;
+			if (i == position && player == 'x') cout << termcolor::bright_red;
+			cout << "   " << selection_bar[i];
+		}
+		cout << termcolor::reset << endl;
+		
 		drawBoard(board);
 		
 		input = _getch();
