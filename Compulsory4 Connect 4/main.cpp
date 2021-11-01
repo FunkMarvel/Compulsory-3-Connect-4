@@ -144,54 +144,29 @@ int selectCol(vector<vector<char>>& board, char player) {
 
 bool checkWin(vector<vector<char>>& board, int col) {
 	bool win{ false };
-	int row{};
-	int r_diag{}, l_diag{}, h_line{}, v_line{};
-	int row_start{}, row_stop{}, col_start{}, col_stop{};
+	int count{};
 
 	for (size_t i = 0; i < board.size(); i++) {
-		if (board[i][col] != ' ') {
-			row = i; break;
+		for (size_t j = 1; j < board[0].size(); j++) {
+			if (board[i][j - 1] == board[i][j]) { count++; }
+			else { count = 0; }
+			if (count >= 3) return true;
 		}
 	}
 
-	if (row + 4 < board.size()) {
-		for (size_t i = row + 1; i <= row + 3; i++) {
-			if (board[row][col] == board[i][col]) { v_line++; }
-			else { v_line = -1; break; }
-		}
-		if (v_line == 4) return true;
-	}
-
-	if (col - 3 >= 0) { col_start = col - 3; }
-	else { col_start = 0; }
-	if (col + 3 < board[0].size()) { col_stop = col + 3; }
-	else { col_stop = board[0].size() - 1; }
-
-	if (col_stop - col_start >= 4) {
-		for (size_t i = col_start; i <= col_stop; i++) {
-			if (board[row][col] == board[row][i]) { h_line++; }
-			else { h_line = 0; }
-			if (h_line == 4) return true;
+	count = 0;
+	for (size_t j = 0; j < board[0].size(); j++) {
+		for (size_t i = 1; i < board.size(); i++) {
+			if (board[i - 1][j] == board[i][j]) { count++; }
+			else { count = 0; }
+			if (count >= 3) return true;
 		}
 	}
 
-	if (row - 3 >= 0) { row_start = row - 3; }
-	else { row_start = 0; }
-	if (row + 3 < board.size()) { row_stop = row + 3; }
-	else { row_stop = board.size() - 1; }
-
-	if (col_stop - col_start >= 4 && row_stop - row_start >= 4) {
-		int i{ row_start };
-		int r_col{ col_start };
-		int l_col{ col_stop };
-		while (i <= row_stop && r_col <= col_stop && l_col >= col_start) {
-			if (board[row][col] == board[i][r_col]) { r_diag++; }
-			else { r_diag = 0; }
-
-			if (board[row][col] == board[i][l_col]) { l_diag++; }
-			else { l_diag = 0; }
-
-			i++; r_col++; l_col--;
+	count = 0;
+	for (size_t i = 0; i < board.size(); i++) {
+		for (size_t j = 0; j < board[0].size(); j++) {
+			if (board[i + j*board[0].size()][i + j*board[0].size() + 1])
 		}
 	}
 }
