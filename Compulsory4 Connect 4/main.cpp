@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include <conio.h>
+#include <cmath>
 
 // using termcolor by Ihor Kalnytskyi for coloring text in terminal:
 #include "termcolor.hpp"  // https://github.com/ikalnytskyi/termcolor.git
@@ -15,10 +16,12 @@ void menu(vector<vector<char>>& board);
 void gamePlayLoop(vector<vector<char>>& board);
 void startTask(int, vector<vector<char>>& board);
 void createBoard(vector<vector<char>>& board, int num_rows, int num_cols);
+void clearBoard(vector<vector<char>>& board);
 void drawBoard(vector<vector<char>>& board);
 void drawBar(vector<char>& selection_bar, int position, char player, bool prompt=true);
 int selectCol(vector<vector<char>>&, char player);
-bool checkWin(vector<vector<char>>& board, int position);
+bool checkWin(vector<vector<char>>& board);
+bool traverseDiag(vector<vector<char>>& board, int start_row, int start_col, int step = 1);
 
 int main() {
 	vector<vector<char>> board{};
@@ -33,6 +36,7 @@ void startTask(int position, vector<vector<char>>& board) {
 	switch (position) {
 	case 0:
 		gamePlayLoop(board);
+		clearBoard(board);
 		break;
 	case 1:
 		break;
@@ -46,6 +50,14 @@ void startTask(int position, vector<vector<char>>& board) {
 void createBoard(vector<vector<char>>& board, int num_rows, int num_cols) {
 	for (size_t i = 0; i < num_rows; i++) {
 		board.push_back(vector<char>(num_cols, ' '));
+	}
+}
+
+void clearBoard(vector<vector<char>>& board) {
+	for (size_t i = 0; i < board.size(); i++) {
+		for (size_t j = 0; j < board[0].size(); j++) {
+			board[i][j] = ' ';
+		}
 	}
 }
 
@@ -142,13 +154,13 @@ int selectCol(vector<vector<char>>& board, char player) {
 	}
 }
 
-bool checkWin(vector<vector<char>>& board, int col) {
+bool checkWin(vector<vector<char>>& board) {
 	bool win{ false };
 	int count{};
 
 	for (size_t i = 0; i < board.size(); i++) {
 		for (size_t j = 1; j < board[0].size(); j++) {
-			if (board[i][j - 1] == board[i][j]) { count++; }
+			if (board[i][j - 1] == board[i][j] && board[i][j] != ' ') { count++; }
 			else { count = 0; }
 			if (count >= 3) return true;
 		}
@@ -157,17 +169,38 @@ bool checkWin(vector<vector<char>>& board, int col) {
 	count = 0;
 	for (size_t j = 0; j < board[0].size(); j++) {
 		for (size_t i = 1; i < board.size(); i++) {
-			if (board[i - 1][j] == board[i][j]) { count++; }
+			if (board[i - 1][j] == board[i][j] && board[i][j] != ' ') { count++; }
 			else { count = 0; }
 			if (count >= 3) return true;
 		}
 	}
 
-	count = 0;
-	for (size_t i = 0; i < board.size(); i++) {
-		for (size_t j = 0; j < board[0].size(); j++) {
-			if (board[i + j*board[0].size()][i + j*board[0].size() + 1])
-		}
+	for (size_t i = 0; i < board.size()/2; i++) {
+		if (traverseDiag(board, i, 0)) return true;
+	}
+	for (size_t j = 0; j < (board[0].size() + 1)/2; j++) {
+		if (traverseDiag(board, 0, j)) return true;
+	}
+	for (size_t i = board.size()-1; i > board.size() / 2; i--) {
+		if (traverseDiag(board, i, 0,-1)) return true;
+	}
+	for (size_t j = 1; j < (board[0].size() + 1) / 2; j++) {
+		if (traverseDiag(board, board.size()-1, j,-1)) return true;
+	}
+
+	return false;
+}
+
+bool traverseDiag(vector<vector<char>>& board, int row, int col, int step) {
+	int count{};
+
+	for (size_t i = 0; i < board.size()*board[0].size(); i++) {
+		if (board[row][col] == board[row + step][col + abs(step)] && board[row][col] != ' ') { count++; }
+		else { count = 0; }
+		if (count >= 3) return true;
+		row += step; col += abs(step);
+		if (row + step >= board.size() || row + step < 0) return false;
+		if (col + abs(step) >= board[0].size()) return false;
 	}
 }
 
@@ -223,6 +256,7 @@ void gamePlayLoop(vector<vector<char>>& board) {
 		else { player = 'o'; }
 
 		selectCol(board, player);
+		if (checkWin(board)) return;
 
 		turn++;
 	}
