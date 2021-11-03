@@ -24,10 +24,12 @@ public:
 	inline char getMark() { return mark; }
 	inline void setMark(char _mark) { mark = _mark; }
 
-	inline unsigned int getScore() { return score; }
-	inline void incrementScore() { score++; }
+	inline unsigned int getScore() { return current_score; }
+	inline unsigned int getHighScore() { return old_score + current_score; }
+	inline void incrementScore() { current_score++; }
 
 	void save(string filename);
+	void load(string filename);
 
 	friend std::ostream& operator<<(std::ostream& os, Player player);
 	friend std::ostream& operator<<(std::ostream& os, Player* player);
@@ -35,7 +37,10 @@ public:
 private:
 	char mark;
 	string name;
-	unsigned int score{};
+	unsigned int current_score{};
+	unsigned int old_score{};
+
+	inline void calcHighScore() { old_score += current_score; }
 
 };
 
