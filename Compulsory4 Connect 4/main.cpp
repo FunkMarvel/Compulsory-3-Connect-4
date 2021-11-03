@@ -1,16 +1,5 @@
 // Compulsory 3, Anders P. Asbo. 
-#include <iostream>
-#include <string>
-#include <vector>
-#include <conio.h>
-#include <cmath>
-
-// using termcolor by Ihor Kalnytskyi for coloring text in terminal:
-#include "termcolor.hpp"  // https://github.com/ikalnytskyi/termcolor.git
-// thanks to Marcus Nesvik Henriksen for bringing this library to my attention.
-
-using std::cout; using std::cin; using std::string;
-using std::endl; using std::vector;
+#include "player.h"
 
 void menu(vector<vector<char>>& board);
 void gamePlayLoop(vector<vector<char>>& board);
