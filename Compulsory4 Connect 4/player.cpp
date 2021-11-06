@@ -67,7 +67,21 @@ std::ostream& operator<<(std::ostream& os, Player player) {
 	return os;
 }
 
+
 std::ostream& operator<<(std::ostream& os, Player* player) {
 	os << *player;
 	return os;
+}
+
+Player* createPlayer(int player_number) {
+	Player* player{};
+	string name{};
+	char mark{'x'};
+	if (player_number % 2) mark = 'o';
+
+	cout << " Enter player " << player_number << " name (no spaces): ";
+	cin >> name;
+	player = new Player(name, mark);
+
+	return player;
 }

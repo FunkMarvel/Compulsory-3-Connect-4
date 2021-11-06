@@ -44,3 +44,4 @@ private:
 
 };
 
+Player* createPlayer(int);

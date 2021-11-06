@@ -2,7 +2,7 @@
 #include "player.h"
 
 void menu(vector<vector<char>>& board);
-void gamePlayLoop(vector<vector<char>>& board);
+void gamePlayLoop(vector<vector<char>>& board, bool ai_on=false);
 void startTask(int, vector<vector<char>>& board);
 void createBoard(vector<vector<char>>& board, int num_rows, int num_cols);
 void clearBoard(vector<vector<char>>& board);
@@ -235,18 +235,78 @@ void menu(vector<vector<char>>& board) {
 
 }
 
-void gamePlayLoop(vector<vector<char>>& board) {
-	char player{ 'o' };
-	bool ai_on{ false };
-	int turn{};
+void gamePlayLoop(vector<vector<char>>& board, bool ai_on) {
+	Player* player1{ nullptr }; Player* player2{ nullptr };
+	bool replay{ true };
 
-	while (true) {
-		if (turn % 2 == 0) { player = 'x'; }
-		else { player = 'o'; }
+	player1 = createPlayer(1);
 
-		selectCol(board, player);
-		if (checkWin(board)) return;
-
-		turn++;
+	if (!ai_on) {
+		player2 = createPlayer(2);
 	}
+	else {
+		player2 = new Player("ai", 'x');
+	}
+
+	while (replay) {
+		int turn{0};
+		char mark{};
+		Player* player{ nullptr };
+
+		while (true) {
+			turn++;
+
+			if (turn % 2) { mark = player1->getMark(); }
+			else { mark = player2->getMark(); }
+
+			selectCol(board, mark);
+			if (checkWin(board)) {
+				if (turn % 2) { player1->incrementScore(); player = player1; }
+				else { player2->incrementScore(); player = player2; }
+				break;
+			}
+		}
+
+		vector<string> options{ "Yes", "No" };
+		int pos{};
+		while (replay) {
+			char input{};
+			system("cls");
+			cout << termcolor::reset << "Winner: " << player->getName() << " : " << player->getScore() << endl;
+			drawBoard(board);
+			cout << " Play again?" << endl;
+			for (size_t i = 0; i < 2; i++) {
+				if (i == pos) {
+					cout << termcolor::bright_green << " >";
+				}
+				else {
+					cout << termcolor::reset << " ";
+				}
+				cout << "| " << options[i] << "\t";
+			}
+			cout << termcolor::reset << endl;
+
+			input = _getch();
+
+			switch (input) {
+			case 'a':
+				pos--;
+				break;
+			case 'd':
+				pos++;
+				break;
+			case '\r':
+				if (pos) replay = false;
+				break;
+			default:
+				break;
+			}
+
+			if (pos < 0) { pos = 0; }
+			else if (pos >= 2) { pos = 1; }
+		}
+	}
+
+	delete player1;
+	delete player2;
 }
