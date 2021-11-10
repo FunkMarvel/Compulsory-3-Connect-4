@@ -2,8 +2,8 @@
 #include "player.h"
 
 void menu(vector<vector<char>>& board);
-void gamePlayLoop(vector<vector<char>>& board, bool ai_on=false);
-void startTask(int, vector<vector<char>>& board);
+void gamePlayLoop(vector<vector<char>>& board, Player* player1, Player* player2, bool ai_on=false);
+void startTask(int, vector<vector<char>>& board, Player* player1, Player* player2);
 void createBoard(vector<vector<char>>& board, int num_rows, int num_cols);
 void clearBoard(vector<vector<char>>& board);
 void drawBoard(vector<vector<char>>& board);
@@ -11,6 +11,7 @@ void drawBar(vector<char>& selection_bar, int position, char player, bool prompt
 int selectCol(vector<vector<char>>&, char player);
 bool checkWin(vector<vector<char>>& board);
 bool traverseDiag(vector<vector<char>>& board, int start_row, int start_col, int step = 1);
+int aiSelection(vector<vector<char>>& board);
 
 int main() {
 	vector<vector<char>> board{};
@@ -21,10 +22,10 @@ int main() {
 	return 0;
 }
 
-void startTask(int position, vector<vector<char>>& board) {
+void startTask(int position, vector<vector<char>>& board, Player* player1, Player* player2) {
 	switch (position) {
 	case 0:
-		gamePlayLoop(board);
+		gamePlayLoop(board, player1, player2);
 		clearBoard(board);
 		break;
 	case 1:
@@ -193,12 +194,18 @@ bool traverseDiag(vector<vector<char>>& board, int row, int col, int step) {
 	}
 }
 
+int aiSelection(vector<vector<char>>& board) {
+	return 0;
+}
+
 void menu(vector<vector<char>>& board) {
 	int position{};
 	char input{};
 	vector<string> menu_options = { "Play against player.", "Play against AI.", "Quit to desktop." };
 
 	while (true) {
+		Player* player1{ nullptr }; Player* player2{ nullptr };
+
 		system("cls");
 		cout << termcolor::bright_blue << " ~~~ Connect 4 ~~~" << termcolor::reset << endl;
 		for (int i = 0; i < menu_options.size(); i++) {
@@ -220,7 +227,7 @@ void menu(vector<vector<char>>& board) {
 			break;
 		case '\r':  // selects current menu item on press of enter key.
 			system("cls");
-			startTask(position, board);
+			startTask(position, board, player1, player2);
 			system("pause");
 			break;
 		default:
@@ -231,12 +238,13 @@ void menu(vector<vector<char>>& board) {
 		if (position < 0) { position = menu_options.size() - 1; }
 		else if (position >= menu_options.size()) { position = 0; }
 
+		delete player1;
+		delete player2;
 	}
 
 }
 
-void gamePlayLoop(vector<vector<char>>& board, bool ai_on) {
-	Player* player1{ nullptr }; Player* player2{ nullptr };
+void gamePlayLoop(vector<vector<char>>& board, Player* player1, Player* player2, bool ai_on) {
 	bool replay{ true };
 
 	player1 = createPlayer(1);
@@ -259,7 +267,9 @@ void gamePlayLoop(vector<vector<char>>& board, bool ai_on) {
 			if (turn % 2) { mark = player1->getMark(); }
 			else { mark = player2->getMark(); }
 
-			selectCol(board, mark);
+			if (!ai_on || !(turn % 2)) { selectCol(board, mark); }
+			else { aiSelection(board); }
+
 			if (checkWin(board)) {
 				if (turn % 2) { player1->incrementScore(); player = player1; }
 				else { player2->incrementScore(); player = player2; }
@@ -269,10 +279,11 @@ void gamePlayLoop(vector<vector<char>>& board, bool ai_on) {
 
 		vector<string> options{ "Yes", "No" };
 		int pos{};
-		while (replay) {
+		bool select{ false };
+		while (!select) {
 			char input{};
 			system("cls");
-			cout << termcolor::reset << "Winner: " << player->getName() << " : " << player->getScore() << endl;
+			cout << termcolor::reset << "Winner is " << player->getName() << "!" << endl;
 			drawBoard(board);
 			cout << " Play again?" << endl;
 			for (size_t i = 0; i < 2; i++) {
@@ -296,7 +307,9 @@ void gamePlayLoop(vector<vector<char>>& board, bool ai_on) {
 				pos++;
 				break;
 			case '\r':
+				clearBoard(board);
 				if (pos) replay = false;
+				select = true;
 				break;
 			default:
 				break;
@@ -306,7 +319,4 @@ void gamePlayLoop(vector<vector<char>>& board, bool ai_on) {
 			else if (pos >= 2) { pos = 1; }
 		}
 	}
-
-	delete player1;
-	delete player2;
 }
