@@ -12,6 +12,7 @@ int selectCol(vector<vector<char>>&, char player);
 bool checkWin(vector<vector<char>>& board);
 bool traverseDiag(vector<vector<char>>& board, int start_row, int start_col, int step = 1);
 int aiSelection(vector<vector<char>>& board);
+int minimax(vector<vector<char>>& board, int position, int depth, int alpha, int beta, bool maximising);
 
 int main() {
 	vector<vector<char>> board{};
@@ -195,6 +196,37 @@ bool traverseDiag(vector<vector<char>>& board, int row, int col, int step) {
 }
 
 int aiSelection(vector<vector<char>>& board) {
+	return 0;
+}
+
+int minimax(vector<vector<char>> &board, int position, int depth, int alpha, int beta, bool maximising) {
+	if (depth == 0 /* or game over*/) {
+		if (checkWin(board)) return 10000;
+		return 0;
+	}
+
+	if (maximising) {
+		int max_eval{ -10000 };
+		int eval{};
+		for (size_t i = 0; i < board.size(); i++) {
+			eval = minimax(board, i/*pos*/, depth - 1, alpha, beta, false);
+			max_eval = max(max_eval, eval);
+			alpha = max(alpha, max_eval);
+			if (beta <= alpha) break;
+			return max_eval;
+		}
+	}
+	else {
+		int min_eval{ 10000 };
+		int eval{};
+		for (size_t i = 0; i < board.size(); i++) {
+			eval = minimax(board, i/*pos*/, depth - 1, alpha, beta, false);
+			min_eval = min(min_eval, eval);
+			alpha = min(alpha, min_eval);
+			if (beta <= alpha) break;
+			return min_eval;
+		}
+	}
 	return 0;
 }
 
