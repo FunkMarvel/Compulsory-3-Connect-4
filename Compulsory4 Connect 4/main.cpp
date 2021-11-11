@@ -11,7 +11,7 @@ void drawBar(vector<char>& selection_bar, int position, char player, bool prompt
 int selectCol(vector<vector<char>>&, char player);
 bool checkWin(vector<vector<char>>& board);
 bool traverseDiag(vector<vector<char>>& board, int start_row, int start_col, int step = 1);
-int aiSelection(vector<vector<char>>& board);
+int aiSelection(vector<vector<char>>& board, Player* player1, Player* player2, double weight = 0.5);
 int minimax(vector<vector<char>>& board, int position, int depth, int alpha, int beta, bool maximising);
 
 int main() {
@@ -195,7 +195,52 @@ bool traverseDiag(vector<vector<char>>& board, int row, int col, int step) {
 	}
 }
 
-int aiSelection(vector<vector<char>>& board) {
+int aiSelection(vector<vector<char>>& board, Player* player1, Player* player2, double weight) {
+	vector<vector<char>> board_copy{ board };
+	vector<vector<int>> possible_moves{};
+	int possible_win{};
+	int possible_loss{};
+	
+	for (int j = 0; j < board_copy[0].size(); j++) {
+		if (board_copy[0][j] != ' ') continue;
+		for (int i = 1; i < board_copy.size(); i++) {
+			if (board_copy[i][j] != ' ') {
+				possible_moves.push_back({ i - 1, j });
+				break;
+			}
+		}
+	}
+
+	for (vector<int> &position : possible_moves) {
+		board_copy[position[0]][position[1]] = player2->getMark();
+		if (checkWin(board_copy)) possible_win = position[1];
+
+		board_copy[position[0]][position[1]] = player1->getMark();
+		if (checkWin(board_copy)) possible_loss = position[1];
+	}
+
+	// creates random number genenrator for ai behaviour:
+	std::random_device rd{};
+	std::mt19937_64 gen(rd());
+	std::uniform_real_distribution<double> real_dist(0, 1);  // real distrobution for comparing with weight.
+	std::uniform_int_distribution<int> int_dist(0, possible_moves.size() - 1);  // int distrobution for random selection.
+
+	double percent = real_dist(gen); // Draws a random real number between 0 and 1 to compare with difficulty weight.
+	// A lower weight makes the ai more likely to play correct moves, and thus increases the difficulty.
+
+	if (percent > weight && possible_win >= 0) {
+		// possible win is selected if random number is bigger than the difficulty weight:
+		return possible_win;
+	}
+	else if (percent > weight && possible_loss >= 0) {
+		// possible loss is prevented if random number is bigger than the difficulty weight:
+		return possible_loss;
+	}
+	else {
+		// if no other selection has been made, then a random free square is chosen:
+		return possible_moves[int_dist(gen)][1];
+	}
+
 	return 0;
 }
 
@@ -300,7 +345,7 @@ void gamePlayLoop(vector<vector<char>>& board, Player* player1, Player* player2,
 			else { mark = player2->getMark(); }
 
 			if (!ai_on || !(turn % 2)) { selectCol(board, mark); }
-			else { aiSelection(board); }
+			else { aiSelection(board, player1, player2); }
 
 			if (checkWin(board)) {
 				if (turn % 2) { player1->incrementScore(); player = player1; }

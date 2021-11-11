@@ -4,6 +4,7 @@
 #include <vector>
 #include <conio.h>
 #include <cmath>
+#include <random>
 
 
 // using termcolor by Ihor Kalnytskyi for coloring text in terminal:
