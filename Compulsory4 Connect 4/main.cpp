@@ -97,7 +97,7 @@ void drawBar(vector<char>& selection_bar, int position, char player, bool prompt
 
 int selectCol(vector<vector<char>>& board, char player) {
 	char input{};
-	int position{(int) board[0].size()/2};
+	int position{ (int)board[0].size() / 2 };
 	bool selection{ false };
 	vector<char> selection_bar(board[0].size(), ' ');
 	
@@ -166,10 +166,10 @@ bool checkWin(vector<vector<char>>& board) {
 		}
 	}
 
-	for (size_t i = 0; i < board.size()/2; i++) {
+	for (size_t i = 0; i < board.size() / 2; i++) {
 		if (traverseDiag(board, i, 0)) return true;
 	}
-	for (size_t j = 0; j < (board[0].size() + 1)/2; j++) {
+	for (size_t j = 0; j < (board[0].size() + 1) / 2; j++) {
 		if (traverseDiag(board, 0, j)) return true;
 	}
 	for (size_t i = board.size()-1; i > board.size() / 2; i--) {
@@ -240,8 +240,6 @@ int aiSelection(vector<vector<char>>& board, Player* player1, Player* player2, d
 		// if no other selection has been made, then a random free square is chosen:
 		return possible_moves[int_dist(gen)][1];
 	}
-
-	return 0;
 }
 
 int minimax(vector<vector<char>> &board, int position, int depth, int alpha, int beta, bool maximising) {
