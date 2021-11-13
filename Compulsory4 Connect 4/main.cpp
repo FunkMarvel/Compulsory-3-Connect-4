@@ -6,11 +6,11 @@ void gamePlayLoop(vector<vector<char>>& board, Player* player1, Player* player2,
 void startTask(int, vector<vector<char>>& board, Player* player1, Player* player2);
 void createBoard(vector<vector<char>>& board, int num_rows, int num_cols);
 void clearBoard(vector<vector<char>>& board);
-void drawBoard(vector<vector<char>>& board);
+void drawBoard(vector<vector<char>>& board, vector<vector<int>>* winning_positions = nullptr);
 void drawBar(vector<char>& selection_bar, int position, char player, bool prompt=true);
 int selectCol(vector<vector<char>>&, char player);
-bool checkWin(vector<vector<char>>& board);
-bool traverseDiag(vector<vector<char>>& board, int start_row, int start_col, int step = 1);
+bool checkWin(vector<vector<char>>& board, vector<vector<int>> *winning_positions);
+bool traverseDiag(vector<vector<char>>& board, vector<vector<int>> *winning_positions, int start_row, int start_col, int step = 1);
 void aiSelection(vector<vector<char>>& board, Player* player1, Player* player2, double weight = 0);
 int minimax(vector<vector<char>> board, vector<vector<int>> possible_moves, Player* player, Player* AI, vector<int> position, int depth, /*int alpha, int beta,*/ bool maximising);
 bool boardFull(vector<vector<char>>& board);
@@ -58,24 +58,30 @@ void clearBoard(vector<vector<char>>& board) {
 	}
 }
 
-void drawBoard(vector<vector<char>>& board) {
-	for (size_t i = 0; i <= board.size(); i++) {
+void drawBoard(vector<vector<char>>& board, vector<vector<int>>* winning_positions) {
+	bool win{ winning_positions != nullptr };
+	vector<vector<int>> wpos{};
+	if (win) wpos = *winning_positions;
+
+	for (int i = 0; i <= board.size(); i++) {
 		cout << termcolor::bright_blue << " |";
-		for (size_t j = 0; j < 4.5*board.size(); j++) cout << "-";
+		for (int j = 0; j < 4.5*board.size(); j++) cout << "-";
 		cout << "| " << termcolor::reset << endl;
 		if (i == board.size()) break;
 
-		for (size_t j = 0; j < board[0].size(); j++) {
+		for (int j = 0; j < board[0].size(); j++) {
 			cout << termcolor::bright_blue << " | ";
 			switch (board[i][j]) {
 			case ' ':
 				cout << termcolor::reset;
 				break;
 			case 'o':
-				cout << termcolor::bright_yellow;
+				if (win && std::find(wpos.begin(), wpos.end(), vector<int>({ i, j })) != wpos.end()) { cout << termcolor::bright_green; }
+				else { cout << termcolor::bright_yellow; }
 				break;
 			case 'x':
-				cout << termcolor::bright_red;
+				if (win && std::find(wpos.begin(), wpos.end(), vector<int>({ i, j })) != wpos.end()) { cout << termcolor::bright_green; }
+				else { cout << termcolor::bright_red; }
 				break;
 			default:
 				break;
@@ -158,51 +164,57 @@ int selectCol(vector<vector<char>>& board, char player) {
 	}
 }
 
-bool checkWin(vector<vector<char>>& board) {
+bool checkWin(vector<vector<char>>& board, vector<vector<int>>* winning_positions) {
 	bool win{ false };
 	int count{};
+	winning_positions->clear();
 
 	for (size_t i = 0; i < board.size(); i++) {
+		count = 0;
+
 		for (size_t j = 1; j < board[0].size(); j++) {
-			if (board[i][j - 1] == board[i][j] && board[i][j] != ' ') { count++; }
-			else { count = 0; }
-			if (count >= 3) return true;
+			if (board[i][j - 1] == board[i][j] && board[i][j] != ' ') { count++; winning_positions->push_back(vector<int>({ int(i), int(j - 1) })); }
+			else { count = 0; winning_positions->clear(); }
+			if (count >= 3) { winning_positions->push_back(vector<int>({ int(i), int(j) })); /*cout << " hline" << endl; system("pause");*/ return true; }
 		}
 	}
 
-	count = 0;
+	winning_positions->clear();
 	for (size_t j = 0; j < board[0].size(); j++) {
+		count = 0;
+
 		for (size_t i = 1; i < board.size(); i++) {
-			if (board[i - 1][j] == board[i][j] && board[i][j] != ' ') { count++; }
-			else { count = 0; }
-			if (count >= 3) return true;
+			if (board[i - 1][j] == board[i][j] && board[i][j] != ' ') { count++; winning_positions->push_back(vector<int>({ int(i - 1), int(j) })); }
+			else { count = 0; winning_positions->clear(); }
+			if (count >= 3) { winning_positions->push_back(vector<int>({ int(i), int(j) })); /*cout << " vline" << endl; system("pause");*/ return true; }
 		}
 	}
 
 	for (size_t i = 0; i < board.size() / 2; i++) {
-		if (traverseDiag(board, i, 0)) return true;
+		if (traverseDiag(board, winning_positions, i, 0)) { /*cout << " rdiag 1" << endl; system("pause");*/ return true; }
 	}
 	for (size_t j = 0; j < (board[0].size() + 1) / 2; j++) {
-		if (traverseDiag(board, 0, j)) return true;
+		if (traverseDiag(board, winning_positions, 0, j)) { /*cout << " rdiag 2" << endl; system("pause");*/ return true; }
 	}
 	for (size_t i = board.size()-1; i > board.size() / 2; i--) {
-		if (traverseDiag(board, i, 0,-1)) return true;
+		if (traverseDiag(board, winning_positions, i, 0,-1)) { /*cout << " ldiag 1" << endl; system("pause");*/ return true; }
 	}
 	for (size_t j = 1; j < (board[0].size() + 1) / 2; j++) {
-		if (traverseDiag(board, board.size()-1, j,-1)) return true;
+		if (traverseDiag(board, winning_positions, board.size()-1, j,-1)) { /*cout << " ldiag 2" << endl; system("pause");*/ return true; }
 	}
 
 	return false;
 }
 
-bool traverseDiag(vector<vector<char>>& board, int row, int col, int step) {
+bool traverseDiag(vector<vector<char>>& board, vector<vector<int>>* winning_positions, int row, int col, int step) {
 	int count{};
+	winning_positions->clear();
 
 	for (size_t i = 0; i < board.size()*board[0].size(); i++) {
-		if (board[row][col] == board[row + step][col + abs(step)] && board[row][col] != ' ') { count++; }
-		else { count = 0; }
-		if (count >= 3) return true;
+		if (board[row][col] == board[row + step][col + abs(step)] && board[row][col] != ' ') { count++; winning_positions->push_back(vector<int>({ row, col })); }
+		else { count = 0; winning_positions->clear(); }
 		row += step; col += abs(step);
+		if (count >= 3) { winning_positions->push_back(vector<int>({ row, col })); return true; }
 		if (row + step >= board.size() || row + step < 0) return false;
 		if (col + abs(step) >= board[0].size()) return false;
 	}
@@ -257,19 +269,24 @@ void aiSelection(vector<vector<char>>& board, Player* player1, Player* player2, 
 
 int minimax(vector<vector<char>> board, vector<vector<int>> possible_moves, Player* player, Player* AI, vector<int> position, int depth, /*int alpha, int beta,*/ bool maximising) {
 	board[position[0]][position[1]] = AI->getMark();
-	if (checkWin(board)) {
+	vector<vector<int>>* winning_positions = new vector<vector<int>>();
+
+	if (checkWin(board, winning_positions)) {
+		delete winning_positions;
 		if (maximising) return 10000;
 		return -10000;
 	}
 
 	board[position[0]][position[1]] = player->getMark();
-	if (checkWin(board)) {
+	if (checkWin(board, winning_positions)) {
+		delete winning_positions;
 		if (maximising) return 10000;
 		return -10000;
 	}
 	board[position[0]][position[1]] = ' ';
 
 	if (depth == 0 || boardFull(board)) {
+		delete winning_positions;
 		return scorePosition(board, position);
 	}
 
@@ -287,6 +304,7 @@ int minimax(vector<vector<char>> board, vector<vector<int>> possible_moves, Play
 			//if (beta <= alpha) break;
 		}
 		//board[position[0]][position[1]] = ' ';
+		delete winning_positions;
 		return max_eval;
 	}
 	else {
@@ -303,6 +321,7 @@ int minimax(vector<vector<char>> board, vector<vector<int>> possible_moves, Play
 			//if (beta <= alpha) break;
 		}
 		//board[position[0]][position[1]] = ' ';
+		delete winning_positions;
 		return min_eval;
 	}
 }
@@ -413,6 +432,7 @@ void menu(vector<vector<char>>& board) {
 void gamePlayLoop(vector<vector<char>>& board, Player* player1, Player* player2, bool ai_on) {
 	bool replay{ true };
 	bool draw{ false };
+	vector<vector<int>>* winning_moves = new vector<vector<int>>(4, vector<int>());
 
 	player1 = createPlayer(1);
 
@@ -437,7 +457,7 @@ void gamePlayLoop(vector<vector<char>>& board, Player* player1, Player* player2,
 			if (!ai_on || (turn % 2)) { selectCol(board, mark); }
 			else { aiSelection(board, player1, player2); }
 
-			if (checkWin(board)) {
+			if (checkWin(board, winning_moves)) {
 				if (turn % 2) { player1->incrementScore(); player = player1; }
 				else { player2->incrementScore(); player = player2; }
 				break;
@@ -453,10 +473,12 @@ void gamePlayLoop(vector<vector<char>>& board, Player* player1, Player* player2,
 		while (!select) {
 			char input{};
 			system("cls");
-			if (draw) { cout << termcolor::reset << "It's a draw!" << endl; }
-			else { cout << termcolor::reset << "Winner is " << player->getName() << "!" << endl; }
-			drawBoard(board);
+			if (draw) { cout << termcolor::reset << " It's a draw!" << endl; drawBoard(board); }
+			else { cout << termcolor::reset << " Winner is " << player->getName() << "!" << endl; drawBoard(board, winning_moves); }
 			cout << " Play again?" << endl;
+			for (size_t i = 0; i < winning_moves->size(); i++) {
+				cout << "(" << (*winning_moves)[i][0] << ", " << (*winning_moves)[i][1] << ")" << endl;
+			}
 			for (size_t i = 0; i < 2; i++) {
 				if (i == pos) {
 					cout << termcolor::bright_green << " >";
@@ -485,6 +507,7 @@ void gamePlayLoop(vector<vector<char>>& board, Player* player1, Player* player2,
 			case 'q':
 				delete player1;
 				delete player2;
+				delete winning_moves;
 				exit(0);
 			default:
 				break;
@@ -494,4 +517,5 @@ void gamePlayLoop(vector<vector<char>>& board, Player* player1, Player* player2,
 			else if (pos >= 2) { pos = 1; }
 		}
 	}
+	delete winning_moves;
 }
