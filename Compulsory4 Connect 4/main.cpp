@@ -12,9 +12,7 @@ int selectCol(vector<vector<char>>&, char player);
 bool checkWin(vector<vector<char>>& board, vector<vector<int>> *winning_positions);
 bool traverseDiag(vector<vector<char>>& board, vector<vector<int>> *winning_positions, int start_row, int start_col, int step = 1);
 void aiSelection(vector<vector<char>>& board, Player* player1, Player* player2, double weight = 0);
-int minimax(vector<vector<char>> board, vector<vector<int>> possible_moves, Player* player, Player* AI, vector<int> position, int depth, /*int alpha, int beta,*/ bool maximising);
 bool boardFull(vector<vector<char>>& board);
-int scorePosition(vector<vector<char>> board, vector<int> position);
 
 int main() {
 	vector<vector<char>> board{};
@@ -222,6 +220,11 @@ bool traverseDiag(vector<vector<char>>& board, vector<vector<int>>* winning_posi
 
 void aiSelection(vector<vector<char>>& board, Player* player1, Player* player2, double weight) {
 	vector<vector<int>> possible_moves{};
+	vector<vector<char>> board_copy{};
+
+	for (size_t i = 0; i < board.size(); i++) {
+		board_copy.push_back(board[i]);
+	}
 	int possible_win{};
 	int possible_loss{};
 	int selection{};
@@ -244,17 +247,30 @@ void aiSelection(vector<vector<char>>& board, Player* player1, Player* player2, 
 	std::uniform_int_distribution<int> RNG(0, possible_moves.size()-1);
 
 	int prev_eval{10000};
+	vector<vector<int>>* winning_positions = new vector<vector<int>>();
+
 	selection = possible_moves[RNG(gen)][1];
 	for (vector<int> &position : possible_moves) {
-		int eval{ minimax(board, possible_moves, player1, player2, position, 4, /*-10000, 10000,*/ true) };
-		if (prev_eval <= eval) { selection = position[1]; prev_eval = eval; }
-		//cout << " s = " << selection << endl;
-		//system("pause");
-	}
+		board_copy[position[0]][position[1]] = player2->getMark();
+		if (checkWin(board_copy, winning_positions)) {
+			board_copy[position[0]][position[1]] = ' ';
+			selection = position[1];
+			break;
+		}
 
+		board_copy[position[0]][position[1]] = player1->getMark();
+		if (checkWin(board_copy, winning_positions)) {
+			board_copy[position[0]][position[1]] = ' ';
+			selection = position[1];
+			break;
+		}
+
+		board_copy[position[0]][position[1]] = ' ';
+	}
 	vector<char> selection_bar(board[0].size(), ' ');
 	selection_bar[selection] = player2->getMark();
 
+	delete winning_positions;
 	for (int i = 0; i < board.size(); i++) {
 		if (board[i][selection] == ' ') {
 			board[i][selection] = player2->getMark();
@@ -267,118 +283,11 @@ void aiSelection(vector<vector<char>>& board, Player* player1, Player* player2, 
 	}
 }
 
-int minimax(vector<vector<char>> board, vector<vector<int>> possible_moves, Player* player, Player* AI, vector<int> position, int depth, /*int alpha, int beta,*/ bool maximising) {
-	board[position[0]][position[1]] = AI->getMark();
-	vector<vector<int>>* winning_positions = new vector<vector<int>>();
-
-	if (checkWin(board, winning_positions)) {
-		delete winning_positions;
-		if (maximising) return 10000;
-		return -10000;
-	}
-
-	board[position[0]][position[1]] = player->getMark();
-	if (checkWin(board, winning_positions)) {
-		delete winning_positions;
-		if (maximising) return 10000;
-		return -10000;
-	}
-	board[position[0]][position[1]] = ' ';
-
-	if (depth == 0 || boardFull(board)) {
-		delete winning_positions;
-		return scorePosition(board, position);
-	}
-
-	if (maximising) {
-		int max_eval{ -10000 };
-		int eval{};
-		board[position[0]][position[1]] = AI->getMark();
-
-		for (vector<int> &new_position : possible_moves) {
-			if (new_position == position)  new_position[0]--;
-			if (new_position[0] < 0) continue;
-			eval = minimax(board, possible_moves, player, AI, new_position,  depth - 1, /*alpha, beta,*/ !maximising);
-			max_eval = max(max_eval, eval);
-			//alpha = max(alpha, max_eval);
-			//if (beta <= alpha) break;
-		}
-		//board[position[0]][position[1]] = ' ';
-		delete winning_positions;
-		return max_eval;
-	}
-	else {
-		int min_eval{ 10000 };
-		int eval{};
-		board[position[0]][position[1]] = player->getMark();
-
-		for (vector<int> &new_position : possible_moves) {
-			if (new_position == position)  new_position[0]--;
-			if (new_position[0] < 0) continue;
-			eval = minimax(board, possible_moves, player, AI, new_position, depth - 1, /*alpha, beta,*/ !maximising);
-			min_eval = min(min_eval, eval);
-			//beta = min(beta, min_eval);
-			//if (beta <= alpha) break;
-		}
-		//board[position[0]][position[1]] = ' ';
-		delete winning_positions;
-		return min_eval;
-	}
-}
-
 bool boardFull(vector<vector<char>>& board) {
 	for (size_t j = 0; j < board[0].size(); j++) {
 		if (board[0][j] == ' ') return false;
 	}
 	return true;
-}
-
-int scorePosition(vector<vector<char>> board, vector<int> position) {
-	int score{};
-	int weight{ 100 };
-
-
-	for (int i = 1; i < board.size(); i++) {
-		if (position[0] - i >= 0 && board[position[0]][position[1]] == board[position[0] - i][position[1]]) { score += weight; }
-		else { break; }
-	}
-
-	for (int i = 1; i < board.size(); i++) {
-		if (position[0] + i < board.size() && board[position[0]][position[1]] == board[position[0] + i][position[1]]) { score += weight; }
-		else { break; }
-	}
-
-	for (int i = 1; i < board[0].size(); i++) {
-		if (position[1] - i >= 0 && board[position[0]][position[1]] == board[position[0]][position[1] - i]) { score += weight; }
-		else { break; }
-	}
-
-	for (int i = 1; i < board[0].size(); i++) {
-		if (position[1] + i < board[0].size() && board[position[0]][position[1]] == board[position[0]][position[1] + i]) { score += weight; }
-		else { break; }
-	}
-
-	for (int i = 1; i < board.size() * board[0].size(); i++) {
-		if (position[1] - i >= 0 && position[0] - i >= 0 && board[position[0]][position[1]] == board[position[0] - i][position[1] - i]) { score += weight; }
-		else { break; }
-	}
-
-	for (int i = 1; i < board.size() * board[0].size(); i++) {
-		if (position[1] + i < board[0].size() && position[0] + i < board.size() && board[position[0]][position[1]] == board[position[0] + i][position[1] + i]) { score += weight; }
-		else { break; }
-	}
-
-	for (int i = 1; i < board.size() * board[0].size(); i++) {
-		if (position[1] - i >= 0 && position[0] + i < board.size() && board[position[0]][position[1]] == board[position[0] + i][position[1] - i]) { score += weight; }
-		else { break; }
-	}
-
-	for (int i = 0; i < board.size() * board[0].size(); i++) {
-		if (position[1] + i < board[0].size() && position[0] - i >= 0 && board[position[0]][position[1]] == board[position[0] - i][position[1] + i]) { score += weight; }
-		else { break; }
-	}
-
-	return score;
 }
 
 void menu(vector<vector<char>>& board) {
@@ -476,9 +385,9 @@ void gamePlayLoop(vector<vector<char>>& board, Player* player1, Player* player2,
 			if (draw) { cout << termcolor::reset << " It's a draw!" << endl; drawBoard(board); }
 			else { cout << termcolor::reset << " Winner is " << player->getName() << "!" << endl; drawBoard(board, winning_moves); }
 			cout << " Play again?" << endl;
-			for (size_t i = 0; i < winning_moves->size(); i++) {
-				cout << "(" << (*winning_moves)[i][0] << ", " << (*winning_moves)[i][1] << ")" << endl;
-			}
+			//for (size_t i = 0; i < winning_moves->size(); i++) {
+			//	cout << "(" << (*winning_moves)[i][0] << ", " << (*winning_moves)[i][1] << ")" << endl;
+			//}
 			for (size_t i = 0; i < 2; i++) {
 				if (i == pos) {
 					cout << termcolor::bright_green << " >";
