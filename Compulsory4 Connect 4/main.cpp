@@ -194,7 +194,7 @@ bool checkWin(vector<vector<char>>& board, vector<vector<int>>* winning_position
 	for (size_t j = 0; j < (board[0].size() + 1) / 2; j++) {
 		if (traverseDiag(board, winning_positions, 0, j, max_count)) { /*cout << " rdiag 2" << endl; system("pause");*/ return true; }
 	}
-	for (size_t i = board.size()-1; i > board.size() / 2; i--) {
+	for (size_t i = board.size()-1; i >= board.size() / 2; i--) {
 		if (traverseDiag(board, winning_positions, i, 0, max_count, -1)) { /*cout << " ldiag 1" << endl; system("pause");*/ return true; }
 	}
 	for (size_t j = 1; j < (board[0].size() + 1) / 2; j++) {
@@ -225,8 +225,6 @@ void aiSelection(vector<vector<char>>& board, Player* player1, Player* player2, 
 	for (size_t i = 0; i < board.size(); i++) {
 		board_copy.push_back(board[i]);
 	}
-	int possible_win{};
-	int possible_loss{};
 	int selection{};
 	
 	for (int j = 0; j < board[0].size(); j++) {
@@ -246,7 +244,6 @@ void aiSelection(vector<vector<char>>& board, Player* player1, Player* player2, 
 	std::mt19937_64 gen(rd());
 	std::uniform_int_distribution<int> RNG(0, possible_moves.size()-1);
 
-	int prev_eval{10000};
 	vector<vector<int>>* winning_positions = new vector<vector<int>>();
 
 	selection = possible_moves[RNG(gen)][1];
