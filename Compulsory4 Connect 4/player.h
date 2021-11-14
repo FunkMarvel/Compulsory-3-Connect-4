@@ -5,6 +5,7 @@
 #include <conio.h>
 #include <cmath>
 #include <random>
+#include <memory>
 
 
 // using termcolor by Ihor Kalnytskyi for coloring text in terminal:
@@ -34,7 +35,7 @@ public:
 	void load(string filename);
 
 	friend std::ostream& operator<<(std::ostream& os, Player player);
-	friend std::ostream& operator<<(std::ostream& os, Player* player);
+	friend std::ostream& operator<<(std::ostream& os, std::unique_ptr<Player>& player);
 
 private:
 	char mark;
@@ -46,4 +47,4 @@ private:
 
 };
 
-Player* createPlayer(int);
+void createPlayer(int, std::unique_ptr<Player>&);

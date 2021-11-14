@@ -20,6 +20,7 @@ void Player::save(string filename) {
 				line_pos = lines.size() - 1;
 			}
 		}
+		ofile.clear();
 		ofile.seekg(0);
 		for (size_t i = 0; i < lines.size(); i++) {
 			if (i != line_pos) {
@@ -68,20 +69,17 @@ std::ostream& operator<<(std::ostream& os, Player player) {
 }
 
 
-std::ostream& operator<<(std::ostream& os, Player* player) {
+std::ostream& operator<<(std::ostream& os, std::unique_ptr<Player>& player) {
 	os << *player;
 	return os;
 }
 
-Player* createPlayer(int player_number) {
-	Player* player{};
+void createPlayer(int player_number, std::unique_ptr<Player>& player) {
 	string name{};
 	char mark{'x'};
 	if (player_number % 2) mark = 'o';
 
 	cout << " Enter player " << player_number << " name (no spaces): ";
 	cin >> name;
-	player = new Player(name, mark);
-
-	return player;
+	player = std::make_unique<Player>(Player(name, mark));
 }
