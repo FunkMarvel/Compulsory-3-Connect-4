@@ -131,8 +131,6 @@ int selectCol(vector<vector<char>>& board, char player) {
 			selection = true;
 			selection_bar[position] = ' ';
 			break;
-		case 'q':
-			exit(0);
 		default:
 			break;
 		}
