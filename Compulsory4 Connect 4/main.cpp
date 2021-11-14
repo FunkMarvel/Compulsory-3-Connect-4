@@ -9,8 +9,8 @@ void clearBoard(vector<vector<char>>& board);
 void drawBoard(vector<vector<char>>& board, vector<vector<int>>* winning_positions = nullptr);
 void drawBar(vector<char>& selection_bar, int position, char player, bool prompt=true);
 int selectCol(vector<vector<char>>&, char player);
-bool checkWin(vector<vector<char>>& board, vector<vector<int>> *winning_positions);
-bool traverseDiag(vector<vector<char>>& board, vector<vector<int>> *winning_positions, int start_row, int start_col, int step = 1);
+bool checkWin(vector<vector<char>>& board, vector<vector<int>> *winning_positions, int max_count = 3);
+bool traverseDiag(vector<vector<char>>& board, vector<vector<int>> *winning_positions, int start_row, int start_col, int max_count, int step = 1);
 void aiSelection(vector<vector<char>>& board, Player* player1, Player* player2, double weight = 0);
 bool boardFull(vector<vector<char>>& board);
 
@@ -162,7 +162,7 @@ int selectCol(vector<vector<char>>& board, char player) {
 	}
 }
 
-bool checkWin(vector<vector<char>>& board, vector<vector<int>>* winning_positions) {
+bool checkWin(vector<vector<char>>& board, vector<vector<int>>* winning_positions, int max_count) {
 	bool win{ false };
 	int count{};
 	winning_positions->clear();
@@ -173,7 +173,7 @@ bool checkWin(vector<vector<char>>& board, vector<vector<int>>* winning_position
 		for (size_t j = 1; j < board[0].size(); j++) {
 			if (board[i][j - 1] == board[i][j] && board[i][j] != ' ') { count++; winning_positions->push_back(vector<int>({ int(i), int(j - 1) })); }
 			else { count = 0; winning_positions->clear(); }
-			if (count >= 3) { winning_positions->push_back(vector<int>({ int(i), int(j) })); /*cout << " hline" << endl; system("pause");*/ return true; }
+			if (count >= max_count) { winning_positions->push_back(vector<int>({ int(i), int(j) })); /*cout << " hline" << endl; system("pause");*/ return true; }
 		}
 	}
 
@@ -184,27 +184,27 @@ bool checkWin(vector<vector<char>>& board, vector<vector<int>>* winning_position
 		for (size_t i = 1; i < board.size(); i++) {
 			if (board[i - 1][j] == board[i][j] && board[i][j] != ' ') { count++; winning_positions->push_back(vector<int>({ int(i - 1), int(j) })); }
 			else { count = 0; winning_positions->clear(); }
-			if (count >= 3) { winning_positions->push_back(vector<int>({ int(i), int(j) })); /*cout << " vline" << endl; system("pause");*/ return true; }
+			if (count >= max_count) { winning_positions->push_back(vector<int>({ int(i), int(j) })); /*cout << " vline" << endl; system("pause");*/ return true; }
 		}
 	}
 
 	for (size_t i = 0; i < board.size() / 2; i++) {
-		if (traverseDiag(board, winning_positions, i, 0)) { /*cout << " rdiag 1" << endl; system("pause");*/ return true; }
+		if (traverseDiag(board, winning_positions, i, 0, max_count)) { /*cout << " rdiag 1" << endl; system("pause");*/ return true; }
 	}
 	for (size_t j = 0; j < (board[0].size() + 1) / 2; j++) {
-		if (traverseDiag(board, winning_positions, 0, j)) { /*cout << " rdiag 2" << endl; system("pause");*/ return true; }
+		if (traverseDiag(board, winning_positions, 0, j, max_count)) { /*cout << " rdiag 2" << endl; system("pause");*/ return true; }
 	}
 	for (size_t i = board.size()-1; i > board.size() / 2; i--) {
-		if (traverseDiag(board, winning_positions, i, 0,-1)) { /*cout << " ldiag 1" << endl; system("pause");*/ return true; }
+		if (traverseDiag(board, winning_positions, i, 0, max_count, -1)) { /*cout << " ldiag 1" << endl; system("pause");*/ return true; }
 	}
 	for (size_t j = 1; j < (board[0].size() + 1) / 2; j++) {
-		if (traverseDiag(board, winning_positions, board.size()-1, j,-1)) { /*cout << " ldiag 2" << endl; system("pause");*/ return true; }
+		if (traverseDiag(board, winning_positions, board.size()-1, j, max_count,  -1)) { /*cout << " ldiag 2" << endl; system("pause");*/ return true; }
 	}
 
 	return false;
 }
 
-bool traverseDiag(vector<vector<char>>& board, vector<vector<int>>* winning_positions, int row, int col, int step) {
+bool traverseDiag(vector<vector<char>>& board, vector<vector<int>>* winning_positions, int row, int col, int max_count, int step) {
 	int count{};
 	winning_positions->clear();
 
@@ -212,7 +212,7 @@ bool traverseDiag(vector<vector<char>>& board, vector<vector<int>>* winning_posi
 		if (board[row][col] == board[row + step][col + abs(step)] && board[row][col] != ' ') { count++; winning_positions->push_back(vector<int>({ row, col })); }
 		else { count = 0; winning_positions->clear(); }
 		row += step; col += abs(step);
-		if (count >= 3) { winning_positions->push_back(vector<int>({ row, col })); return true; }
+		if (count >= max_count) { winning_positions->push_back(vector<int>({ row, col })); return true; }
 		if (row + step >= board.size() || row + step < 0) return false;
 		if (col + abs(step) >= board[0].size()) return false;
 	}
@@ -257,12 +257,20 @@ void aiSelection(vector<vector<char>>& board, Player* player1, Player* player2, 
 			selection = position[1];
 			break;
 		}
+		else if (checkWin(board_copy, winning_positions, 2)) {
+			board_copy[position[0]][position[1]] = ' ';
+			selection = position[1];
+		}
 
 		board_copy[position[0]][position[1]] = player1->getMark();
 		if (checkWin(board_copy, winning_positions)) {
 			board_copy[position[0]][position[1]] = ' ';
 			selection = position[1];
 			break;
+		}
+		else if (checkWin(board_copy, winning_positions, 2)) {
+			board_copy[position[0]][position[1]] = ' ';
+			selection = position[1];
 		}
 
 		board_copy[position[0]][position[1]] = ' ';
