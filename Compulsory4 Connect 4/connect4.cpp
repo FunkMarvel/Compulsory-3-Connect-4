@@ -1,53 +1,86 @@
+// Compulsory 3, Anders P. Asbo.
 #include "connect4.h"
 
 void startTask(int position, vector<vector<char>>& board, std::unique_ptr<Player>& player1, std::unique_ptr<Player>& player2) {
+	//	Function for starting the tasks associated with each main-menu item.
+	//
+	//	Args:
+	//		position -- integer with position of menu cursor, used to start correct task.
+	//		board -- 2D char-vector passed by reference, contains game-board.
+	//		player1 -- unique pointer to Player object, representing player 1.
+	//		player2 -- unique pointer to Player object, representing player 2. 
+
 	switch (position) {
 	case 0:
-		gamePlayLoop(board, player1, player2);
-		clearBoard(board);
+		gamePlayLoop(board, player1, player2);  // starts Player vs Player.
+		clearBoard(board);  // clears board after completed game.
 		break;
 	case 1:
-		gamePlayLoop(board, player1, player2, true);
+		gamePlayLoop(board, player1, player2, true);  // starts Player vs AI.
 		clearBoard(board);
 		break;
 	case 2:
-		leaderBoard();
+		leaderBoard();  // displays leader board.
 		break;
 	case 3:
-		exit(0);
+		exit(0);  // exits program.
 	default:
 		break;
 	}
 }
 
 void createBoard(vector<vector<char>>& board, int num_rows, int num_cols) {
+	//	Function for creating game board of dimensions num_rows*num_cols. The resulting 2D vector is stored in the board-parameter.
+	//
+	//	Args:
+	//		board -- 2D char-vector passed by reference, contains game-board.
+	//		num_rows -- integer containing number of rows.
+	//		num_cols -- integer containing number of columns.
+
 	for (size_t i = 0; i < num_rows; i++) {
-		board.push_back(vector<char>(num_cols, ' '));
+		board.push_back(vector<char>(num_cols, ' '));  // filling up board with ' '-chars representing free tile on the game board.
 	}
 }
 
 void clearBoard(vector<vector<char>>& board) {
+	//	Function that sets all elements in provided 2D char-vector to ' '.
+	//
+	//	Args:
+	//		board -- 2D char-vector passed by reference, contains game-board.
+
 	for (size_t i = 0; i < board.size(); i++) {
 		for (size_t j = 0; j < board[0].size(); j++) {
-			board[i][j] = ' ';
+			board[i][j] = ' ';  // filling up board with ' '-chars representing free tile on the game board.
 		}
 	}
 }
 
 void drawBoard(vector<vector<char>>& board, vector<vector<int>>* winning_positions) {
-	bool win{ winning_positions != nullptr };
-	vector<vector<int>> wpos{};
-	if (win) wpos = *winning_positions;
+	//	Function for creating game board of dimensions num_rows*num_cols. The resulting 2D vector is stored in the board-parameter.
+	//
+	//	Args:
+	//		board -- 2D char-vector passed by reference, contains game-board.
+	// 
+	//	KeyWordArgs:
+	//		winning_positions -- pointer to 2D vector of ints (default = nullptr) containing the positions of elements on game board
+	//							 that form a connected line of 4.
 
-	for (int i = 0; i <= board.size(); i++) {
+	bool win{ winning_positions != nullptr };  // checks if someone has won the game.
+	vector<vector<int>> wpos{};
+	if (win) wpos = *winning_positions;  // copies winning positions if there has been a win.
+
+	for (int i = 0; i <= board.size(); i++) {  // iterates through entire game board.
+
+		// prints horisontal divider between each row of the game board:
 		cout << termcolor::bright_blue << " |";
 		for (int j = 0; j < 4.5 * board.size(); j++) cout << "-";
 		cout << "| " << termcolor::reset << endl;
-		if (i == board.size()) break;
+		if (i == board.size()) break;  // makes sure divider is printed undearneath final row.
 
-		for (int j = 0; j < board[0].size(); j++) {
-			cout << termcolor::bright_blue << " | ";
-			switch (board[i][j]) {
+		for (int j = 0; j < board[0].size(); j++) {  // prints actual characters from game board:
+			cout << termcolor::bright_blue << " | ";  // prints vertical dividers between each column.
+
+			switch (board[i][j]) {  // switches to yellow text for player 1 piece, red for player 2 piece and green if piece is part of winning combination:
 			case ' ':
 				cout << termcolor::reset;
 				break;
@@ -62,21 +95,31 @@ void drawBoard(vector<vector<char>>& board, vector<vector<int>>* winning_positio
 			default:
 				break;
 			}
-			cout << board[i][j];
+			cout << board[i][j];  // prints actuall piece.
 		}
-		cout << termcolor::bright_blue << " | " << termcolor::reset << endl;
+		cout << termcolor::bright_blue << " | " << termcolor::reset << endl; // prints vertical dividers after final column.
 	}
 }
 
 void drawBar(vector<char>& selection_bar, int position, char player, bool prompt) {
+	// Function for drawing the selection bar that shows where a piece will be dropped on the board.
+	// 
+	// Args:
+	//		selection_bar -- vector of char passed by reference, contains the piece that is to be dropped.
+	//		position -- int with initial position of cursor along selection bar.
+	//		player -- char containing the mark used for current player's pieces.
+	// 
+	// KeyWordArgs:
+	//		prompt -- bool (default = true) telling function wether to accept user input on position of cursor.
+
 	if (prompt) cout << termcolor::reset << " Navigate with 'a' and 'd', select column with 'enter':" << endl;
-	for (int i = 0; i < selection_bar.size(); i++) {
+	for (int i = 0; i < selection_bar.size(); i++) {  // prints cursor in green:
 		if (i == position) { cout << termcolor::bright_green << "   v"; }
-		else { cout << "   " << selection_bar[i]; }
+		else { cout << "   " << selection_bar[i]; } 
 	}
 	cout << termcolor::reset << endl;
 
-	for (int i = 0; i < selection_bar.size(); i++) {
+	for (int i = 0; i < selection_bar.size(); i++) {  // prints piece to drop in corresponding color:
 		if (i == position && player == 'o') cout << termcolor::bright_yellow;
 		if (i == position && player == 'x') cout << termcolor::bright_red;
 		cout << "   " << selection_bar[i];
@@ -85,40 +128,48 @@ void drawBar(vector<char>& selection_bar, int position, char player, bool prompt
 }
 
 int selectCol(vector<vector<char>>& board, char player) {
+	// Function for letting non-AI player select where to drop their piece. Returns the chosen column.
+	// 
+	// Args:
+	//		board -- 2D char-vector passed by reference, contains game-board.
+	//		player -- char containing mark used for current player's pieces.
+	//
+
 	char input{};
-	int position{ (int)board[0].size() / 2 };
+	int position{ (int)board[0].size() / 2 };  // starts cursor at center of selection bar.
 	bool selection{ false };
 	vector<char> selection_bar(board[0].size(), ' ');
 
-	while (true) {
+	while (true) {  // loops until return
 		system("cls");
-		selection_bar[position] = player;
+		selection_bar[position] = player;  // sets marker at correct position in selection bar.
 
-		drawBar(selection_bar, position, player);
+		drawBar(selection_bar, position, player);  // draws bar.
 
-		drawBoard(board);
+		drawBoard(board);  // draws board.
 
 		input = _getch();
 
-		switch (tolower(input)) {
+		switch (tolower(input)) {  // moving cursor position allong acording to input:
 		case 'a':
 			selection_bar[position--] = ' ';
 			break;
 		case 'd':
 			selection_bar[position++] = ' ';
 			break;
-		case '\r':
+		case '\r':  // if enter is hit, toggles flag that selection has been made.
 			selection = true;
-			selection_bar[position] = ' ';
+			selection_bar[position] = ' ';  // removes marker from selection bar as part of drop-animation.
 			break;
 		default:
 			break;
 		}
 
+		// loops cursor around if out of bounds:
 		if (position < 0) { position = selection_bar.size() - 1; }
 		else if (position >= selection_bar.size()) { position = 0; }
 
-		if (selection) {
+		if (selection) {  // animates drop of piece if selection has been made:
 			for (int i = 0; i < board.size(); i++) {
 				if (board[i][position] == ' ') {
 					board[i][position] = player;
@@ -128,7 +179,7 @@ int selectCol(vector<vector<char>>& board, char player) {
 					drawBoard(board);
 					Sleep(100);
 				}
-				else if (i == 0) {
+				else if (i == 0) {  // forces new selection of position if current column is full:
 					selection = false;
 					break;
 				}
@@ -139,64 +190,94 @@ int selectCol(vector<vector<char>>& board, char player) {
 }
 
 bool checkWin(vector<vector<char>>& board, vector<vector<int>>* winning_positions, int max_count) {
+	// Function that checks if the provided board contains at least one winning combination of pieces.
+	// 
+	//  Args:
+	//		board -- 2D char-vector passed by reference, contains game-board.
+	//		winning_positions -- pointer to 2D vector of ints (default = nullptr) containing the positions of elements on game board
+	//							 that form a connected line of 4.
+	//	KeyWordArgs:
+	//		max_count -- int (default = 3) containing how many comparisons must be true before a win has been made.
+	
 	bool win{ false };
 	int count{};
-	winning_positions->clear();
+	winning_positions->clear();  // sanitizing vector for winning combination.
 
-	for (size_t i = 0; i < board.size(); i++) {
+	for (size_t i = 0; i < board.size(); i++) {  // checks for 4 in a row:
 		count = 0;
 
 		for (size_t j = 1; j < board[0].size(); j++) {
 			if (board[i][j - 1] == board[i][j] && board[i][j] != ' ') { count++; winning_positions->push_back(vector<int>({ int(i), int(j - 1) })); }
-			else { count = 0; winning_positions->clear(); }
-			if (count >= max_count) { winning_positions->push_back(vector<int>({ int(i), int(j) })); /*cout << " hline" << endl; system("pause");*/ return true; }
+			else { count = 0; winning_positions->clear(); }  // sanitizing vector for winning combination, and resetting coutn if not max_count + 1 in a row.
+			if (count >= max_count) { winning_positions->push_back(vector<int>({ int(i), int(j) })); return true; } // if number of true comparisons reaches max_count, there is max_count + 1 in a row.
 		}
 	}
 
 	winning_positions->clear();
-	for (size_t j = 0; j < board[0].size(); j++) {
+	for (size_t j = 0; j < board[0].size(); j++) { // checks for 4 in a column:
 		count = 0;
 
 		for (size_t i = 1; i < board.size(); i++) {
 			if (board[i - 1][j] == board[i][j] && board[i][j] != ' ') { count++; winning_positions->push_back(vector<int>({ int(i - 1), int(j) })); }
-			else { count = 0; winning_positions->clear(); }
-			if (count >= max_count) { winning_positions->push_back(vector<int>({ int(i), int(j) })); /*cout << " vline" << endl; system("pause");*/ return true; }
+			else { count = 0; winning_positions->clear(); } // sanitizing vector for winning combination, and resetting coutn if not max_count + 1 in a column.
+			if (count >= max_count) { winning_positions->push_back(vector<int>({ int(i), int(j) })); return true; } // if number of true comparisons reaches max_count, there is max_count + 1 in a column.
 		}
 	}
 
-	for (size_t i = 0; i < board.size() / 2; i++) {
-		if (traverseDiag(board, winning_positions, i, 0, max_count)) { /*cout << " rdiag 1" << endl; system("pause");*/ return true; }
+	for (size_t i = 0; i < board.size() / 2; i++) { // checks all upper-left to lower-right diagonals that start in column 0:
+		if (traverseDiag(board, winning_positions, i, 0, max_count)) return true;
 	}
-	for (size_t j = 0; j < (board[0].size() + 1) / 2; j++) {
-		if (traverseDiag(board, winning_positions, 0, j, max_count)) { /*cout << " rdiag 2" << endl; system("pause");*/ return true; }
+	for (size_t j = 0; j < (board[0].size() + 1) / 2; j++) { // checks all upper-left to lower-right diagonals that don't start in column 0:
+		if (traverseDiag(board, winning_positions, 0, j, max_count)) return true;
 	}
-	for (size_t i = board.size() - 1; i >= board.size() / 2; i--) {
-		if (traverseDiag(board, winning_positions, i, 0, max_count, -1)) { /*cout << " ldiag 1" << endl; system("pause");*/ return true; }
+	for (size_t i = board.size() - 1; i >= board.size() / 2; i--) { // checks all lower-left to upper-right diagonals that start in column 0:
+		if (traverseDiag(board, winning_positions, i, 0, max_count, -1)) return true;
 	}
-	for (size_t j = 1; j < (board[0].size() + 1) / 2; j++) {
-		if (traverseDiag(board, winning_positions, board.size() - 1, j, max_count, -1)) { /*cout << " ldiag 2" << endl; system("pause");*/ return true; }
+	for (size_t j = 1; j < (board[0].size() + 1) / 2; j++) { // checks all lower-left to upper-right diagonals that don't start in column 0:
+		if (traverseDiag(board, winning_positions, board.size() - 1, j, max_count, -1)) return true;
 	}
 
-	return false;
+	return false;  // returns false if no win.
 }
 
 bool traverseDiag(vector<vector<char>>& board, vector<vector<int>>* winning_positions, int row, int col, int max_count, int step) {
-	int count{};
-	winning_positions->clear();
+	// Function for traversing diagonal in game board. Used in checkWin. Returns true if max_count + 1 equal successive elements in diagonal.
+	// 
+	// Args:
+	//		board -- 2D char-vector passed by reference, contains game-board.
+	//		winning_positions -- pointer to 2D vector of ints (default = nullptr) containing the positions of elements on game board
+	//							 that form a connected line of 4.
+	//		row -- int row-index for first element.
+	//		col -- int column-index for first element.
+	//		max_count -- int containing how many comparisons must be true before a win has been made.
+	//		
+	// KeyWordArgs:
+	//		step -- int containing stepsize for moving along diagonal. Positive step gives upper-left to lower-right diagonal,
+	//				negative step gives upper-right to lower-left diagonal.
 
-	for (size_t i = 0; i < board.size() * board[0].size(); i++) {
+	int count{};
+	winning_positions->clear(); // sanitizing vector for winning combination.
+
+	for (size_t i = 0; i < board.size() * board[0].size(); i++) {  // counts number of equal succesive elements along diagonal:
 		if (board[row][col] == board[row + step][col + abs(step)] && board[row][col] != ' ') { count++; winning_positions->push_back(vector<int>({ row, col })); }
-		else { count = 0; winning_positions->clear(); }
-		row += step; col += abs(step);
-		if (count >= max_count) { winning_positions->push_back(vector<int>({ row, col })); return true; }
+		else { count = 0; winning_positions->clear(); } // sanitizing vector for winning combination, and resetting coutn if not max_count + 1 in a row.
+		row += step; col += abs(step);  // incrementing indices.
+		if (count >= max_count) { winning_positions->push_back(vector<int>({ row, col })); return true; }  // returning true if win-combination.
+
+		// returning false if out of bounds:
 		if (row + step >= board.size() || row + step < 0) return false;
 		if (col + abs(step) >= board[0].size()) return false;
 	}
 }
 
 bool boardFull(vector<vector<char>>& board) {
+	// Function checks if board is full. Returns true if full, false otherwise.
+	// 
+	// Args:
+	//		board -- 2D char-vector passed by reference, contains game-board.
+
 	for (size_t j = 0; j < board[0].size(); j++) {
-		if (board[0][j] == ' ') return false;
+		if (board[0][j] == ' ') return false;  // checking if there is at least one free tile in top row.
 	}
 	return true;
 }
