@@ -2,7 +2,7 @@
 
 double difficultySelect() {
 	vector<string> options{ "Easy", "Medium", "Hard", "Lunatic" };
-	vector<double> weights{ 0.5, 0.9, 0.99, 1.1 };
+	vector<double> weights{ 0.5, 0.8, 0.95, 1.1 };
 	bool selection{ false };
 	char input{};
 	int position{};
