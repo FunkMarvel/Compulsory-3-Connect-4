@@ -283,29 +283,40 @@ bool boardFull(vector<vector<char>>& board) {
 }
 
 void leaderBoard() {
-	system("cls");
-	vector<Player> players{ loadPlayers(Player::getFilename()) };
+	// Function that prints leader board with player scores.
 
+	system("cls");
+	vector<Player> players{ loadPlayers(Player::getFilename()) };  // retrieves sorted vector of all saved players except AI.
+
+	// prints board headers:
 	cout << termcolor::bright_blue << "\t  ~~ Leader Board ~~" << endl;
 	cout << termcolor::reset << std::setw(5) << std::left << "Rank:" << " | " << std::setw(20) << std::left << "Name:" << " | " << std::setw(12) << std::left << "Total Wins:" << endl;
-	for (int i = players.size() - 1; i >= 0; i--) {
+	for (int i = players.size() - 1; i >= 0; i--) {  // vector is sorted from lowest to highest score, so loop prints elements in reverse:
 		cout << std::setw(5) << players.size() - i << " | " << std::setw(20) << players[i].getName() << " | " << std::setw(12) << players[i].getHighScore() << endl;
 	}
 	system("pause");
 }
 
 void menu(vector<vector<char>>& board) {
+	// Function displaying main menu.
+	//
+	// Args:
+	//		board -- 2D char-vector passed by reference, contains game-board.
+
+	// creates unique pointers for active players. (not really necesarry, but i can't be bothered to change it):
 	std::unique_ptr<Player> player1; std::unique_ptr<Player> player2;
 	int position{};
 	char input{};
+
+	// Menu options to display:
 	vector<string> menu_options = { "Play against player.", "Play against AI.", "Display leader board", "Quit to desktop." };
 
-	while (true) {
+	while (true) {  // loop that displays menu and handles input:
 
-		system("cls");
+		system("cls");  // Printing menu options:
 		cout << termcolor::bright_blue << " ~~~ Connect 4 ~~~" << termcolor::reset << endl;
 		for (int i = 0; i < menu_options.size(); i++) {
-			if (i == position) {
+			if (i == position) {  // ads cursor at current selection.
 				cout << termcolor::green << " ";
 			}
 			cout << " | " << i + 1 << ": " << menu_options[i] << termcolor::reset << endl;
@@ -325,14 +336,14 @@ void menu(vector<vector<char>>& board) {
 			system("cls");
 			startTask(position, board, player1, player2);
 			break;
-		case 'q':
+		case 'q':  // quits on press of q.
 			startTask(3, board, player1, player2);
 			break;
 		default:
 			break;
 		}
 
-		// loops position around if out of menu range.
+		// loops position around if out of menu range:
 		if (position < 0) { position = menu_options.size() - 1; }
 		else if (position >= menu_options.size()) { position = 0; }
 
@@ -340,65 +351,85 @@ void menu(vector<vector<char>>& board) {
 }
 
 void gamePlayLoop(vector<vector<char>>& board, std::unique_ptr<Player>& player1, std::unique_ptr<Player>& player2, bool ai_on) {
+	//	Function for starting the tasks associated with each main-menu item.
+	//
+	//	Args:
+	//		board -- 2D char-vector passed by reference, contains game-board.
+	//		player1 -- unique pointer to Player object, representing player 1.
+	//		player2 -- unique pointer to Player object, representing player 2. 
+	//	KeyWordArgs:
+	//		ai_on -- bool (default = false), uses ai as player 2 if true.
+	//				 If false, player 2 is human controlled.
+
 	bool replay{ true };
 	bool draw{ false };
 	double weight{};
 	vector<vector<int>>* winning_moves = new vector<vector<int>>(4, vector<int>());
 
-	createPlayer(1, player1);
+	createPlayer(1, player1);  // asks for player name and assigns Player-object to player1 pointer.
 
 	if (!ai_on) {
-		createPlayer(2, player2);
+		createPlayer(2, player2);  // asks for player name and assigns Player-object to player2 pointer if ai is off.
 	}
 	else {
-		weight = difficultySelect();
-		player2 = std::make_unique<Player>(Player("A I", 'x'));
+		weight = difficultySelect();  // assigns difficulty weight for aiSelection() if ai on.
+		player2 = std::make_unique<Player>(Player("A I", 'x')); //  assigns AI Player-object to player2 pointer if ai on.
 	}
+
+	// loads existing scores of playeres if they have one:
 	player1->load(Player::getFilename());
 	player2->load(Player::getFilename());
 
-	while (replay) {
-		int turn{ 0 };
+	while (replay) {  // replay loop persists until user no longer wants to play.
+		int turn{ 0 };  // turn-counter.
 		char mark{};
 
-		while (true) {
+		while (true) {  // actual game play loop:
 			turn++;
 
-			if (turn % 2) { mark = player1->getMark(); }
-			else { mark = player2->getMark(); }
+			if (turn % 2) { mark = player1->getMark(); }  // player one on odd turns.
+			else { mark = player2->getMark(); }  // player 2 on even turns.
 
+			// asks for selection if human player, or runs aiSelection() if ai's turn:
 			if (!ai_on || (turn % 2)) { selectCol(board, mark); }
 			else { aiSelection(board, player1, player2, weight); }
 
-			if (checkWin(board, winning_moves)) {
+			if (checkWin(board, winning_moves)) {  // checks for win, and increments winner's score if win:
 				if (turn % 2) { player1->incrementScore(); }
 				else { player2->incrementScore(); }
-				break;
+				break;  // breaks out of game play loop
 			}
-			else if (draw = boardFull(board)) {
+			else if (draw = boardFull(board)) { // checks for draw, and breaks out of game play loop if true.
 				break;
 			}
 		}
 
+		// this section is the replay menu:
 		vector<string> options{ "Yes", "No" };
 		int pos{};
 		bool select{ false };
-		while (!select) {
+
+		while (!select) {  // loops until player has chosen wether to replay:
 			char input{};
-			system("cls");
-			if (draw) { cout << termcolor::reset << " It's a draw!" << endl; drawBoard(board); }
+
+			system("cls");  // prints game end message and final board:
+			if (draw) { drawBoard(board);  cout << termcolor::reset << " It's a draw!" << endl; }
 			else {
+				drawBoard(board, winning_moves);
 				cout << termcolor::reset << " Winner is ";
 				if (turn % 2) { cout << player1->getName(); }
 				else { cout << player2->getName(); }
-				cout << "!" << endl; drawBoard(board, winning_moves);
+				cout << "!" << endl;
 			}
+
+			// prints scores of current players:
 			cout << " Scores: " << endl;
 			cout << "  Player 1  | This session: | Total: |" << endl;
 			cout << " " << std::setw(10) << player1->getName() << " | " << std::setw(13) << player1->getScore() << " | " << std::setw(6) << player1->getHighScore() << " |" << endl;
 			cout << "  Player 2  | This session: | Total: |" << endl;
 			cout << " " << std::setw(10) << player2->getName() << " | " << std::setw(13) << player2->getScore() << " | " << std::setw(6) << player2->getHighScore() << " |" << endl;
 
+			// prints options for replay:
 			cout << " Play again?" << endl;
 			for (size_t i = 0; i < 2; i++) {
 				if (i == pos) {
@@ -413,7 +444,7 @@ void gamePlayLoop(vector<vector<char>>& board, std::unique_ptr<Player>& player1,
 
 			input = _getch();
 
-			switch (input) {
+			switch (input) {  // moves cursor or selects menu item on user input:
 			case 'a':
 				pos--;
 				break;
@@ -425,17 +456,20 @@ void gamePlayLoop(vector<vector<char>>& board, std::unique_ptr<Player>& player1,
 				if (pos) replay = false;
 				select = true;
 				break;
-			case 'q':
+			case 'q':  // terminate program on 'q'.
 				delete winning_moves;
 				exit(0);
 			default:
 				break;
 			}
 
+			// bounds checking for menu:
 			if (pos < 0) { pos = 0; }
 			else if (pos >= 2) { pos = 1; }
 		}
 	}
+
+	// saves scores of players if user chooses to return to menu:
 	player1->save(Player::getFilename());
 	player2->save(Player::getFilename());
 	delete winning_moves;
