@@ -140,10 +140,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="connect4.cpp" />
+    <ClCompile Include="connect4_AI.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="player.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="connect4.h" />
+    <ClInclude Include="connect4_AI.h" />
     <ClInclude Include="player.h" />
     <ClInclude Include="termcolor.hpp" />
   </ItemGroup>

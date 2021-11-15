@@ -21,12 +21,24 @@
     <ClCompile Include="player.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="connect4_AI.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="connect4.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="termcolor.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="player.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="connect4.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="connect4_AI.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -2,15 +2,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
-#include <conio.h>
-#include <cmath>
-#include <random>
-#include <memory>
-
-
-// using termcolor by Ihor Kalnytskyi for coloring text in terminal:
-#include "termcolor.hpp"  // https://github.com/ikalnytskyi/termcolor.git
-// thanks to Marcus Nesvik Henriksen for bringing this library to my attention.
+#include <algorithm>
 
 using std::cout; using std::cin; using std::string;
 using std::endl; using std::vector;
@@ -19,6 +11,7 @@ class Player {
 public:
 	Player() { name = "AI"; mark = 'x'; }
 	Player(string _name, char _mark) { name = _name; mark = _mark; }
+	Player(string _name, int _score) { name = _name; old_score = _score; }
 	~Player() {}
 
 	inline string getName() { return name; }
@@ -36,6 +29,9 @@ public:
 
 	friend std::ostream& operator<<(std::ostream& os, Player player);
 	friend std::ostream& operator<<(std::ostream& os, std::unique_ptr<Player>& player);
+	friend bool operator<(Player player1, Player player2) { return player1.getHighScore() < player2.getHighScore(); }
+
+	inline const static string getFilename() { return "savefile.txt"; }
 
 private:
 	char mark;
@@ -48,3 +44,4 @@ private:
 };
 
 void createPlayer(int, std::unique_ptr<Player>&);
+vector<Player> loadPlayers(string filename);
